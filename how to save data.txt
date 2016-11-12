@@ -1,0 +1,11 @@
+you can make a mongodb server and save data there.
+so node can interact with mongodb and python can interact with mongodb but node and python dont have to interact with one another atall.
+
+Then to store your cluster you can either make a dict or list of clusters and store all the feed in that,
+or 
+you can save the feed with cluster no as parameter in it
+
+Should you store the features all the feed in the database
+or should you generate feature all over again
+
+Should you store the mean of all the data indivisually 

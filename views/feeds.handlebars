@@ -1,0 +1,29 @@
+
+<div class="feed">
+	
+	{{#each feeds}}
+		<div id="feed{{@index}}" class="title"> {{@index}}. {{this.feed.0.title}} 	[{{index }}] 
+				
+				{{#each feed}}
+					<div id="{{@../index}}{{@index}}" class="title_summary" style="display:none">
+					  		&nbsp{{@../index }}.{{@index }}. &nbsp{{title}}
+
+						 	<div class="summary" style="display:none">
+							  	&nbsp&nbsp{{summary}}
+							  	<br>
+							  	<br>
+							</div>
+						 	<br>
+						 	
+					  </div>
+					  
+				{{/each}}
+				
+				<br>
+			
+		</div>
+		<br>
+		
+	{{/each}}
+	
+</div>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Feedcution</title>
+		<style type="text/css">
+			html {
+				display: table;
+				width: 100%;
+				height: 100%;
+				margin: 0px;
+				padding: 0px;
+				text-align: center;
+				background: #003B46;
+				color : #FFFFFF;
+			}
+			body {
+				display: table-cell;
+				vertical-align: middle;
+			}
+		
+			#content {
+				margin-left: auto;
+				margin-right: auto;
+			}
+			input {
+				color : #000000;
+				border-radius: 6px;
+			}
+			
+			#submit {
+				background: #66A5AD;
+				border-color: #66A5AD;
+			}
+
+			a {
+				color : #66A5AD;
+				text-decoration: none;
+			}
+
+			#ui-id-1 {
+    		background: transparent;
+    		color: grey;
+    		list-style: none;
+    		padding: 0px;
+    		margin: 0px;
+			}
+			.ui-state-focus {
+				/*background:  !important;*/
+				/*background-color: #202020 !important;*/
+				border: transparent;
+				color: black; 
+			}
+			input[type="text"] {
+				background: white;
+    			width: 300px;
+			}
+			input{
+				background: white;
+			}
+
+
+			.feed, .title, .title_summary{
+				width: 900px;
+			    text-align: left;
+			    background-color: #004B46;
+			    text-decoration-color: black;
+			    
+
+			}
+
+			.feed{
+				margin: auto;
+			}
+			.title_summary{
+				
+				background-color: #005346;
+				display: none;
+			}
+			
+			.summary{
+				background-color: #006346;
+			}
+
+		</style>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+		
+		<script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+	</head>
+	<body>
+
+		<div id="content">
+			<h1> Login </h1>
+			<div id="login">
+				<form action='javascript:formget();' method="get" id="login" algin="left">
+				            <label for="useraname">username:</label>
+				            <input type="text" id="usrn" name="usrn" placeholder="enter your user name" autofocus="on" />
+				            <label for="password">password:</label>
+				            <input type="password" id="pass" name="pass" />
+				            <input id ="submit" type="submit" value="log in" onclick="formget();" />
+				</form>
+			</div>
+
+			<h2 id='message'> </h2>
+
+			<h2><a href="javascript:register();" > Register</a></h2>
+		</div>
+
+		<script type="text/javascript">
+
+			var uid;
+
+			function formget(){
+				username = $('#usrn').val();
+				pass = $('#pass').val();
+				$('#content').empty();
+				//e.preventDefault();
+				console.log(username);
+				$.post('/login',{username : username , pass : pass},function(content){
+					$('#content').append(content);
+				});
+			}
+
+			function register(){
+				$('#content').empty();
+				$.get('/register',function(content){
+					$('#content').append(content);
+				});
+			}
+
+			function adduser(){
+				var name = $('#name').val();  
+				var email = $('#email').val();
+				var no = $('#no').val();
+				var username = $('#username').val();
+				var pass = $('#pass').val();
+
+				$('#no').val();
+				$('#content').empty();
+				$.post('/adduser',{name : name, email : email , no : no, username:username , pass:pass},function(content){
+					$('#content').append(content);
+				});
+			}
+			
+			function addFeedLinks(){
+				$('#content').empty();
+				$.get('/addFeedLinks',function(content){
+					$('#content').append(content);
+				});
+			}
+
+			function addLinks(){
+				var link = $('#link').val();
+
+				$('#content').empty();
+				$.get('/addLinks',{link : link},function(content){
+					$('#content').append(content);
+				});	
+			}
+			function getFeeds(url){
+				$('#content').empty();
+				$.get('/feeds',function(content){
+					$('#content').append(content);
+				});
+			}
+			
+			$(document).click(function(event) {
+				
+	    var clas = $(event.target).attr('id');
+	    console.log(clas);
+	    $("#"+clas).children().slideToggle();
+	});
+		</script>
+	</body>
+</html>

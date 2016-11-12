@@ -1,0 +1,30 @@
+{
+  "name": "feeduction",
+  "version": "1.0.0",
+  "description": "a smart feed reader",
+  "main": "feeduction.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/goyalakshat14/newsClustering.git"
+  },
+  "keywords": [
+    "feed"
+  ],
+  "author": "light",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/goyalakshat14/newsClustering/issues"
+  },
+  "homepage": "https://github.com/goyalakshat14/newsClustering#readme",
+  "dependencies": {
+    "bcrypt": "^0.8.7",
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "express-handlebars": "^3.0.0",
+    "mongodb": "^2.2.11",
+    "zerorpc": "^0.9.6"
+  }
+}
