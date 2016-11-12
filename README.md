@@ -9,10 +9,10 @@
 	4. feedLinks
 
 3. start the python server:
-	. python news_clustering.py
+	 python news_clustering.py
 
 4. start the node.js server:
-	. node feeduction.js
+	 node feeduction.js
 
 5. open 127.0.0.1:3000 in browser
 
