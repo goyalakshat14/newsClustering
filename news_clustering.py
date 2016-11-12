@@ -1,3 +1,4 @@
+import sys
 #to parse html
 from HTMLParser import HTMLParser
 #to parse feed
@@ -17,8 +18,13 @@ from datetime import datetime
 import math
 #using counter(sub class of dict) 
 from collections import Counter
-
+#to use mongodb
+import pymongo
+from pymongo import MongoClient
+#to fetch feed repeteadly after a time interval
+import cronus.beat as beat
 #hashes all the feed
+
 def hashFeed(feed):
     allFeed = {}
     for entries in feed.entries:
@@ -94,7 +100,7 @@ def vectorize(texts):
 #end of vectorize function
 
 #cosine similarity function
-def cosineSim(iD , iD2):
+def cosineSim(iD , iD2, documentVec, docSqrRootTotal):
     sumTerm = 0
     for term in documentVec[iD]:
         if(term in documentVec[iD2]):
@@ -106,7 +112,7 @@ def cosineSim(iD , iD2):
 
 
 #UPGMA function
-def upgma(cluster1 , cluster2):
+def upgma(cluster1 , cluster2, docCosSim):
     A = len(cluster1)
     B = len(cluster2)
     sum = 0
@@ -120,87 +126,123 @@ def upgma(cluster1 , cluster2):
 ######################--program starts here--#########################
 ######################################################################
 
-threshold = 0.55 
+def feeduction():
+    threshold = 0.6 
 
-#get all the feed from the rss
-print "fetching feed"
-print time.strftime('%l:%M:%S%p')
-dt = datetime.now()
-print dt.microsecond
-lifehacker = feedparser.parse("http://www.lifehacker.co.in/rss_section_feeds/18906387.cms")
-phonearena = feedparser.parse("http://www.phonearena.com/feed")
+    #connecting to mongoClient
+    client = MongoClient('localhost', 27017)
+    db = client['feeduction']
 
-#hashFeed
-print "hashing the feed"
-print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
-dt = datetime.now()
-print dt.microsecond
-feed = hashFeed(lifehacker)
-feed.update(hashFeed(phonearena))
+    #get all the feed from the rss
+    print "fetching feed"
+    print time.strftime('%l:%M:%S%p')
+    dt = datetime.now()
+    print dt.microsecond
 
-#tokenize feed
-print "tokenizing the feed"
-print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
-dt = datetime.now()
-print dt.microsecond
-textToken = feedTokenize(feed)
+    feedLinks = db.feedLinks.find()
 
+    feeds = []
+    for links in feedLinks:
+        feeds.append(feedparser.parse(links['link']))
 
-#vectoring the document
-print "vectorizing the token"
-print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
-dt = datetime.now()
-print dt.microsecond
-documentVec = vectorize(textToken)
+    # lifehacker = feedparser.parse("http://www.lifehacker.co.in/rss_section_feeds/18906387.cms")
+    # phonearena = feedparser.parse("http://www.phonearena.com/feed")
+    #lifehacker = feedparser.parse("http://www.dnaindia.com/syndication/rss_topnews.xml")
+    #phonearena = feedparser.parse("http://www.thehindu.com/news/?service=rss")
 
+    #hashFeed
+    print "hashing the feed"
+    print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
+    dt = datetime.now()
+    print dt.microsecond
+    feed = {}
+    for f in feeds:
+        feed.update(hashFeed(f))
+        #feed = hashFeed(lifehacker)
+        #feed.update(hashFeed(phonearena))
 
-#Calculating total no of terms
-print "calcualting total token in documents"
-print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
-docSqrRootTotal = {}
-for iD in documentVec:
-    sqrtotal  = 0
-    for term in documentVec[iD]:
-        sqrtotal += documentVec[iD][term]*documentVec[iD][term]
-    docSqrRootTotal[iD] = math.sqrt(sqrtotal) 
+    #tokenize feed
+    print "tokenizing the feed"
+    print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
+    dt = datetime.now()
+    print dt.microsecond
+    textToken = feedTokenize(feed)
 
 
-#cosine similarity
-print "calculating similarity"
-print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
-
-docCosSim = {}
-for iD in documentVec:
-    cosSim = {}
-    for iD2 in documentVec:
-        if( iD != iD2 ):
-           cosSim[iD2] =  cosineSim(iD,iD2)
-    docCosSim[iD] = cosSim
+    #vectoring the document
+    print "vectorizing the token"
+    print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
+    dt = datetime.now()
+    print dt.microsecond
+    documentVec = vectorize(textToken)
 
 
-#making cluster
-clusters = []
-print "making cluster"
-print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
-for iD in documentVec:
-    if( not clusters):
-        clusters.append([iD])
-    else :
-        means = []
-        for cluster in clusters:
-            means.append(upgma([iD],cluster))
-        
-        minVal = min(means)
-        print minVal
-        if(minVal < threshold):
-            clusters[means.index(minVal)].append(iD)
-        else:
+    #Calculating total no of terms
+    print "calcualting total token in documents"
+    print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
+    docSqrRootTotal = {}
+    for iD in documentVec:
+        sqrtotal  = 0
+        for term in documentVec[iD]:
+            sqrtotal += documentVec[iD][term]*documentVec[iD][term]
+        docSqrRootTotal[iD] = math.sqrt(sqrtotal) 
+
+
+    #cosine similarity
+    print "calculating similarity"
+    print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
+
+    docCosSim = {}
+    for iD in documentVec:
+        cosSim = {}
+        for iD2 in documentVec:
+            if( iD != iD2 ):
+               cosSim[iD2] =  cosineSim(iD, iD2, documentVec, docSqrRootTotal)
+        docCosSim[iD] = cosSim
+
+
+    #making cluster
+    clusters = []
+    print "making cluster"
+    print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
+    for iD in documentVec:
+        if( not clusters):
             clusters.append([iD])
+        else :
+            means = []
+            for cluster in clusters:
+                means.append(upgma([iD],cluster, docCosSim))
+            
+            minVal = min(means)
+            #print minVal
+            if(minVal < threshold):
+                clusters[means.index(minVal)].append(iD)
+            else:
+                clusters.append([iD])
 
-print "clustering complete"
-print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
-for cluster in clusters:
-    print ""
-    print "new cluster"
-    for iD in  cluster:
-        print feed[iD].title
+
+    feedsUnread = db.feedsUnread
+
+    i =0
+    print "clustering complete"
+    print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
+    for cluster in clusters:
+        i +=1
+        print ""
+        print "new cluster"
+        mongoClus = {}
+        j = 1
+        for iD in  cluster:
+            print (feed[iD].title).encode('ascii','ignore')
+            f = {'title':feed[iD].title,'summary':feed[iD].summary,'link':feed[iD].link}
+            clus = {str(j):{'ID':iD.hexdigest(),'feed':f}}
+            mongoClus.update(clus)
+            j+=1
+        print len(mongoClus)
+        #feedsUnread.insert(mongoClus)
+
+rate = 1.0/3600
+beat.set_rate(rate)
+while beat.true():
+    feeduction()
+    beat.sleep()
