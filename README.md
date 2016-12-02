@@ -7,7 +7,7 @@
 	2. feedsUnread
 	3. feedsRead
 	4. feedLinks
-
+	5. processedFeed
 3. start the python server:
 	 python news_clustering.py
 
