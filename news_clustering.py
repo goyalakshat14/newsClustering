@@ -23,14 +23,24 @@ import pymongo
 from pymongo import MongoClient
 #to fetch feed repeteadly after a time interval
 import cronus.beat as beat
-#hashes all the feed
 
-def hashFeed(feed):
+#returns the feed that are already processed
+def processedFeed(db):
+    processed = []
+    proFeedDB = db.processedFeed.find()
+    for ID in proFeedDB:
+        processed.append(ID['ID'])
+    return processed
+
+#hashes all the feed
+def hashFeed(feed,processed):
     allFeed = {}
     for entries in feed.entries:
         iD = entries.link
         hasx = hashlib.md5(iD)
-        allFeed[hasx] = entries
+        
+        if(hasx.hexdigest() not in processed):
+            allFeed[hasx] = entries
     return allFeed
 
 #end of hashFeed
@@ -121,6 +131,12 @@ def upgma(cluster1 , cluster2, docCosSim):
             sum += (1-docCosSim[iD][iD2])
     mean = sum/(A*B)
     return mean
+
+#Inserts feeds ID in processedFeed collection
+def insProcessedFeed(iD,db):
+    temp = {'ID' : iD.hexdigest()}
+    db.processedFeed.insert(temp)
+
 #end of epgma function
 ######################################################################
 ######################--program starts here--#########################
@@ -128,6 +144,7 @@ def upgma(cluster1 , cluster2, docCosSim):
 
 def feeduction():
     threshold = 0.6 
+
 
     #connecting to mongoClient
     client = MongoClient('localhost', 27017)
@@ -150,6 +167,11 @@ def feeduction():
     #lifehacker = feedparser.parse("http://www.dnaindia.com/syndication/rss_topnews.xml")
     #phonearena = feedparser.parse("http://www.thehindu.com/news/?service=rss")
 
+
+    #getting the processd feed id from database
+    processed = []
+    processed = processedFeed(db)
+
     #hashFeed
     print "hashing the feed"
     print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
@@ -157,10 +179,11 @@ def feeduction():
     print dt.microsecond
     feed = {}
     for f in feeds:
-        feed.update(hashFeed(f))
+        feed.update(hashFeed(f,processed))
         #feed = hashFeed(lifehacker)
         #feed.update(hashFeed(phonearena))
 
+    
     #tokenize feed
     print "tokenizing the feed"
     print time.strftime('%l:%M:%S%p %Z on %b %d, %Y')
@@ -222,6 +245,7 @@ def feeduction():
 
 
     feedsUnread = db.feedsUnread
+    feedsRead = db.feedsRead
 
     i =0
     print "clustering complete"
@@ -230,16 +254,18 @@ def feeduction():
         i +=1
         print ""
         print "new cluster"
-        mongoClus = {}
+        mongoClus = []
         j = 1
         for iD in  cluster:
+            insProcessedFeed(iD,db)
             print (feed[iD].title).encode('ascii','ignore')
             f = {'title':feed[iD].title,'summary':feed[iD].summary,'link':feed[iD].link}
-            clus = {str(j):{'ID':iD.hexdigest(),'feed':f}}
-            mongoClus.update(clus)
+            clus = {'ID':iD.hexdigest(),'feed':f}
+            mongoClus.append(clus)
             j+=1
         print len(mongoClus)
-        #feedsUnread.insert(mongoClus)
+        mClus = {'feeds' : mongoClus}
+        feedsUnread.insert(mClus)
 
 rate = 1.0/3600
 beat.set_rate(rate)

@@ -21,6 +21,7 @@ var app     = express();
 var server = require('http').Server(app);
 var exphbs  = require('express-handlebars');
 //to connect to mongodb server
+var mongo = require('mongodb');
 var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
 //to encrypt password
@@ -109,43 +110,80 @@ app.get('/feeds',function(req,res){
 	var feeds=[];
 	var i=0;
 	MongoClient.connect(url, function(err, db) {
-  	assert.equal(null, err);
-  	console.log("Connected correctly to server");
- 	var collection = db.collection('feedsUnread');
- 	collection.find({}).toArray(function(err,docs){
- 		clust = [];
- 		for(cluster in docs)
- 		{
- 			var clus = docs[cluster];
- 			feed = [];
- 			index = 0;
- 			box = {};
- 			//console.log(i)
- 			//console.log("             "+i)
- 			for(feeds in clus)
- 			{
- 				
- 				var cl = clus[feeds];
- 				if("feed" in cl)
- 				{	
- 					index++;
- 					//console.log(cl['feed']['title']);
- 					temp = {};
- 					temp['title'] = cl['feed']['title'];
- 					temp['summary'] = cl['feed']['summary'];
- 					feed.push(temp);
- 				}
- 			}
- 			box['feed'] = feed;
- 			box['index'] = index;
- 			clust.push(box);
- 			i++;
- 		}
- 		res.render('feeds',{feeds:clust});
- 	});
+	  	assert.equal(null, err);
+	  	console.log("Connected correctly to server");
+	 	var collection = db.collection('feedsUnread');
+	 	collection.find({}).toArray(function(err,docs){
+	 		clust = [];
+	 		for(cluster in docs)
+	 		{
+	 			//console.log("here");
+	 			var clus = docs[cluster];
+	 			feed = [];
+	 			count = 0;
+	 			box = {};
+	 			//console.log(clus);
+	 			//console.log("             "+i)
+	 					
+				//console.log("i am hre"+cl);
+				cl = clus['feeds'];
+				for(feeds in cl)
+				{
+					//console.log(feeds);
+					fd = cl[feeds];
+					
+					count++;
+					//console.log("am i printing ");
+					//console.log(clus['_id']);
+					temp = {};
+					temp['id'] = clus['_id'];
+					temp['title'] = fd['feed']['title'];
+					temp['summary'] = fd['feed']['summary'];
+					feed.push(temp);
+				}
+
+	 			box['feed'] = feed;
+	 			box['count'] = count;
+	 			clust.push(box);
+	 			i++;
+	 		}
+	 		res.render('feeds',{feeds:clust});
+ 		});
 	});
 	
 })
+
+
+app.get('/feedRead',function(req,res){
+	var id = req.query.id;
+	console.log(id);
+	MongoClient.connect(url, function(err, db){
+		var feedUnRead = db.collection('feedsUnread');
+		var o_id = new mongo.ObjectID(id);
+		var feed = feedUnRead.find({"_id" : o_id}).toArray(function(err,docs){
+			if(err)
+				console.log(err);
+			else
+			{
+				var feedRead = db.collection('feedsRead');
+				console.log(docs[0]);
+				feedRead.insert(docs[0], function(err, result) {
+					if(err)
+					{
+						console.log(err);
+					}
+					else
+					{
+						feedUnRead.remove({"_id" : o_id});
+					}
+				});
+			}
+		});
+		
+		//console.log(feed);
+	})
+})
+
 
 server.listen(3000, function () {
      console.log("Express server listening on port " + 3000);

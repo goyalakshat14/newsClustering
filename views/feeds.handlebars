@@ -2,27 +2,31 @@
 <div class="feed">
 	
 	{{#each feeds}}
-		<div id="feed{{@index}}" class="title"> {{@index}}. {{this.feed.0.title}} 	[{{index }}] 
+		<div id="{{feed.0.id}}" class="title"> {{@index}}. {{this.feed.0.title}} 	[{{count }}] 
+		<a href='#' onclick='feedRead("{{feed.0.id}}"); return false;'> mark as read </a> 
 				
 				{{#each feed}}
 					<div id="{{@../index}}{{@index}}" class="title_summary" style="display:none">
 					  		&nbsp{{@../index }}.{{@index }}. &nbsp{{title}}
+					  		<a href='#' onclick='feedRead("{{id}}"); return false;'> mark as read </a> 
+					  		
 
 						 	<div class="summary" style="display:none">
-							  	&nbsp&nbsp{{summary}}
+							  	&nbsp&nbsp{{{summary}}}
+							  	<a href='#' onclick='feedRead("{{id}}"); return false;'> mark as read </a>
+							  	
 							  	<br>
 							  	<br>
 							</div>
 						 	<br>
 						 	
 					  </div>
-					  
 				{{/each}}
 				
 				<br>
-			
+			<br>
 		</div>
-		<br>
+		
 		
 	{{/each}}
 	

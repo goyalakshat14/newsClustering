@@ -114,7 +114,7 @@
 				pass = $('#pass').val();
 				$('#content').empty();
 				//e.preventDefault();
-				console.log(username);
+				//console.log(username);
 				$.post('/login',{username : username , pass : pass},function(content){
 					$('#content').append(content);
 				});
@@ -163,12 +163,19 @@
 				});
 			}
 			
+			function feedRead(ID){
+				$('#'+ID).remove();
+				$.get('/feedRead',{id : ID},function(content){
+
+				})
+			}
+			
 			$(document).click(function(event) {
 				
-	    var clas = $(event.target).attr('id');
-	    console.log(clas);
-	    $("#"+clas).children().slideToggle();
-	});
+			    var clas = $(event.target).attr('id');
+			    //console.log(clas);
+			    $("#"+clas).children().slideToggle();
+			});
 		</script>
 	</body>
 </html>
