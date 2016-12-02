@@ -2,7 +2,7 @@
 
 1. Make a mongoDB database by the name of feeduction
 
-2. Make 4 collection by the name of:
+2. Make collections by the name of:
 	1. users
 	2. feedsUnread
 	3. feedsRead
